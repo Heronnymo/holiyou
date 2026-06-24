@@ -461,8 +461,13 @@
   }
 
   function buildHeader() {
-    var header = document.getElementById("global-header");
-    if (!header) return;
+  var headers = document.querySelectorAll("#global-header");
+  if (!headers || !headers.length) return;
+
+  headers.forEach(function (header) {
+    if (header.getAttribute("data-hy-rendered") === "header") return;
+
+    header.setAttribute("data-hy-rendered", "header");
 
     header.innerHTML = `
       <div class="hy-header-inner">
@@ -513,11 +518,17 @@
         header.classList.remove("hy-menu-open");
       });
     });
-  }
+  });
+}
 
-  function buildFooter() {
-    var footer = document.getElementById("global-footer");
-    if (!footer) return;
+function buildFooter() {
+  var footers = document.querySelectorAll("#global-footer");
+  if (!footers || !footers.length) return;
+
+  footers.forEach(function (footer) {
+    if (footer.getAttribute("data-hy-rendered") === "footer") return;
+
+    footer.setAttribute("data-hy-rendered", "footer");
 
     footer.innerHTML = `
       <div class="hy-footer-inner">
@@ -554,22 +565,40 @@
         </div>
       </div>
     `;
-  }
+  });
+}
 
-  function run() {
-    var hasHeader = !!document.getElementById("global-header");
-    var hasFooter = !!document.getElementById("global-footer");
+function run() {
+  injectStyles();
+  buildHeader();
+  buildFooter();
+}
 
-    if (!hasHeader && !hasFooter) return;
+function startGlobalHeaderFooter() {
+  run();
 
-    injectStyles();
-    buildHeader();
-    buildFooter();
-  }
+  setTimeout(run, 300);
+  setTimeout(run, 800);
+  setTimeout(run, 1500);
+  setTimeout(run, 3000);
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", run);
-  } else {
+  var observer = new MutationObserver(function () {
     run();
-  }
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+
+  setTimeout(function () {
+    observer.disconnect();
+  }, 10000);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", startGlobalHeaderFooter);
+} else {
+  startGlobalHeaderFooter();
+}
 })();
